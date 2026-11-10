@@ -23,7 +23,7 @@ function love.draw()
 end
 
 function love.keypressed(key)
-    if key == "escape" then love.event.quit() return end
+    if key == "escape" then LoadScene(require("menus/main_menu")) return end
     if key == "f5"  then love.event.quit("restart") return end
     if currentScene.keypressed then currentScene.keypressed(currentScene,key) end
 
