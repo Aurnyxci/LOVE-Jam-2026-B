@@ -1,7 +1,12 @@
 local menu = {}
 
 function menu:enter()
-    self.background = love.graphics.newImage("/assets/backgrounds/main_menu_placeholderbg.png") --short function for big image path
+    self.titleBackground = love.graphics.newImage("/assets/backgrounds/main_menu_placeholderbg.png") --short function for big image path
+
+    self.buttonFont = love.graphics.newFont(
+    "assets/fonts/Tiny5Duo-VariableFont_BLED,JITT,ROND,wdth,wght.ttf",
+    24
+)
 
     local screenWidth = love.graphics.getWidth()
 
@@ -11,14 +16,14 @@ function menu:enter()
             x = (screenWidth / 2) - 100, --screenwidth with half of the button's width taken off
             y = 200,
             w = 200,
-            h = 50
+            h = 50,
         },
         {
             text = "Quit",  --quit button data
             x = (screenWidth / 2) - 100,
             y = 300,
             w = 200,
-            h = 50
+            h = 50,
         }
     }
 end
@@ -33,16 +38,16 @@ local function isMouseOver(button)
 end
 
 function menu:draw()
-    love.graphics.draw(self.background, 0, 0) --draw background
+    love.graphics.draw(self.titleBackground, 0, 0) --draw background
 
     for _, button in ipairs(self.buttons) do --iterates through the data table
 
         if isMouseOver(button) then --check if mouse is inside button and change button color
-            love.graphics.setColor(0.5, 0.5, 0.5)
+            love.graphics.setColor(0.5, 0.85, 0.2)
         else
-            love.graphics.setColor(0.3, 0.3, 0.3)
+            love.graphics.setColor(0.0, 0.7, 0.3)
         end
-
+        
         love.graphics.rectangle( --draw rectangle
             "fill", -- mode
             button.x,  --button x pos
@@ -52,10 +57,11 @@ function menu:draw()
         )
 
         love.graphics.setColor(1, 1, 1)
+        love.graphics.setFont(self.buttonFont)
         love.graphics.printf(
             button.text, --sets the text it would be using
             button.x, --the x coordinate
-            button.y + 15, --the y coordinate
+            button.y + 10, --the y coordinate
             button.w, --the width
             "center" --CENTER THE TEXT :D
         )
