@@ -3,17 +3,19 @@ local menu = {}
 function menu:enter()
     self.background = love.graphics.newImage("/assets/backgrounds/main_menu_placeholderbg.png") --short function for big image path
 
+    local screenWidth = love.graphics.getWidth()
+
     self.buttons = {
         {
             text = "Start Game",  --start game button data
-            x = 300,
+            x = (screenWidth / 2) - 100, --screenwidth with half of the button's width taken off
             y = 200,
             w = 200,
             h = 50
         },
         {
             text = "Quit",  --quit button data
-            x = 300,
+            x = (screenWidth / 2) - 100,
             y = 300,
             w = 200,
             h = 50
