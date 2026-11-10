@@ -1,7 +1,7 @@
 local menu = {}
 
 function menu:enter()
-    -- self.background = love.graphics.newImage("/assets/backgrounds/main_menu_placeholderbg.png") --short function for big image path
+    self.background = love.graphics.newImage("/assets/backgrounds/main_menu_placeholderbg.png") --short function for big image path
 
     self.buttons = {
         {
@@ -31,7 +31,7 @@ local function isMouseOver(button)
 end
 
 function menu:draw()
-    --love.graphics.draw(self.background, 0, 0) --draw background
+    love.graphics.draw(self.background, 0, 0) --draw background
 
     for _, button in ipairs(self.buttons) do --iterates through the data table
 
