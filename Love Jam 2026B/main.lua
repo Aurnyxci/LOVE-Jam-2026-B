@@ -8,8 +8,7 @@ end
 
 function love.load()
     love.graphics.setDefaultFilter("nearest","nearest")
-    --LoadScene(require("menu"))
-    LoadScene(require("game"))
+    LoadScene(require("menu"))
 
 end
 
@@ -28,4 +27,10 @@ function love.keypressed(key)
     if key == "f5"  then love.event.quit("restart") return end
     if currentScene.keypressed then currentScene.keypressed(currentScene,key) end
 
+end
+
+function love.mousepressed(x, y, button)
+    if currentScene.mousepressed then
+        currentScene:mousepressed(x, y, button)
+    end
 end
