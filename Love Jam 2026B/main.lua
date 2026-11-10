@@ -8,7 +8,7 @@ end
 
 function love.load()
     love.graphics.setDefaultFilter("nearest","nearest")
-    LoadScene(require("menu"))
+    LoadScene(require("menus/main_menu"))
 
 end
 
