@@ -8,11 +8,6 @@ function menu:enter()
     24
 )
 
-    self.titleFont = love.graphics.newFont(
-    "assets/fonts/Tiny5Duo-VariableFont_BLED,JITT,ROND,wdth,wght.ttf",
-    48
-)
-
     local screenWidth = love.graphics.getWidth()
     local screenHeight = love.graphics.getHeight()
 
