@@ -7,8 +7,8 @@ function settings:enter()
     "assets/fonts/Tiny5Duo-VariableFont_BLED,JITT,ROND,wdth,wght.ttf",
     24
 )
-
     local screenWidth = love.graphics.getWidth()
+    local screenHeight = love.graphics.getHeight()
 
     self.buttons = {
         {
@@ -31,7 +31,10 @@ local function isMouseOver(button)
 end
 
 function settings:draw()
-    love.graphics.draw(self.titleBackground, 0, 0) --draw background
+    local bgw = love.graphics.getWidth() / self.titleBackground:getWidth()
+    local bgh = love.graphics.getHeight() / self.titleBackground:getHeight()
+
+    love.graphics.draw(self.titleBackground, 0, 0, 0, bgw, bgh) --draw background
 
     for _, button in ipairs(self.buttons) do --iterates through the data table
 
