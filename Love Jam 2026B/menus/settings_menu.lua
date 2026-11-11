@@ -44,27 +44,27 @@ function settings:draw()
             love.graphics.setColor(0.0, 0.7, 0.3)
         end
         
-        love.graphics.rectangle( --draw rectangle
-            "fill", -- mode
-            button.x,  --button x pos
-            button.y,  --button y pos
-            button.w,  --button width
-            button.h  --button height
+        love.graphics.rectangle( --draw rectangle for button
+            "fill",
+            button.x,
+            button.y,
+            button.w,
+            button.h
         )
 
         love.graphics.setColor(1, 1, 1)
         love.graphics.setFont(self.buttonFont)
         love.graphics.printf(
-            button.text, --the text
-            button.x, --the x coordinate
-            button.y + 10, --the y coordinate
-            button.w, --the width
-            "center" --CENTER THE TEXT :D
+            button.text,
+            button.x,
+            button.y + 10,
+            button.w,
+            "center"
         )
     end
 end
 
-function settings:mousepressed(x, y, button)
+function settings:mousepressed(x, y, button) --checks if the mouse is pressed on the button and what to do afterwards
     if button ~=1 then
         return
     end
@@ -77,6 +77,7 @@ function settings:mousepressed(x, y, button)
 
             if b.text == "Exit" then
                 LoadScene(require("menus/main_menu"))
+                print("returning to main menu")
             end
         end
     end

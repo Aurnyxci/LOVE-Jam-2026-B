@@ -80,7 +80,7 @@ function menu:draw()
     end
 end
 
-function menu:mousepressed(x, y, button, screenWidth, screenHeight)
+function menu:mousepressed(x, y, button) --checks if the mouse is pressed on the button and what to do afterwards
     if button ~=1 then
         return
     end
@@ -96,9 +96,11 @@ function menu:mousepressed(x, y, button, screenWidth, screenHeight)
                 print("starting game")
 
             elseif b.text == "Settings" then
+                print("opening settings")
                 LoadScene(require("menus/settings_menu"))
 
             elseif b.text == "Quit" then --checks if the button is quit so then it quits
+                print("quitting")
                 love.event.quit()
             end
         end
