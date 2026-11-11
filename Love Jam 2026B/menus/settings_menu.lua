@@ -1,6 +1,6 @@
-local menu = {}
+local settings = {}
 
-function menu:enter()
+function settings:enter()
     self.titleBackground = love.graphics.newImage("/assets/backgrounds/main_menu_placeholderbg.png") --short function for big image path
 
     self.buttonFont = love.graphics.newFont(
@@ -30,7 +30,7 @@ local function isMouseOver(button)
         and my < button.y + button.h
 end
 
-function menu:draw()
+function settings:draw()
     love.graphics.draw(self.titleBackground, 0, 0) --draw background
 
     for _, button in ipairs(self.buttons) do --iterates through the data table
@@ -61,7 +61,7 @@ function menu:draw()
     end
 end
 
-function menu:mousepressed(x, y, button)
+function settings:mousepressed(x, y, button)
     if button ~=1 then
         return
     end
@@ -79,4 +79,4 @@ function menu:mousepressed(x, y, button)
     end
 end
 
-return menu
+return settings

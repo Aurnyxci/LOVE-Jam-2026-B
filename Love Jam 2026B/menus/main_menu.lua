@@ -8,7 +8,13 @@ function menu:enter()
     24
 )
 
+    self.titleFont = love.graphics.newFont(
+    "assets/fonts/Tiny5Duo-VariableFont_BLED,JITT,ROND,wdth,wght.ttf",
+    48
+)
+
     local screenWidth = love.graphics.getWidth()
+    local screenHeight = love.graphics.getHeight()
 
     self.buttons = {
         {
@@ -75,7 +81,7 @@ function menu:draw()
     end
 end
 
-function menu:mousepressed(x, y, button)
+function menu:mousepressed(x, y, button, screenWidth, screenHeight)
     if button ~=1 then
         return
     end
