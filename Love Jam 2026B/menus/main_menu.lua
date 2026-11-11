@@ -46,7 +46,11 @@ local function isMouseOver(button)
 end
 
 function menu:draw()
-    love.graphics.draw(self.titleBackground, 0, 0) --draw background
+
+    local bgw = love.graphics.getWidth() / self.titleBackground:getWidth()
+    local bgh = love.graphics.getHeight() / self.titleBackground:getHeight()
+
+    love.graphics.draw(self.titleBackground, 0, 0, 0, bgw, bgh) --draw background
 
     for _, button in ipairs(self.buttons) do --iterates through the data table
 
