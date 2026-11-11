@@ -17,6 +17,8 @@ d - move right
 
 spacebar - jump
 
+e - pick up items
+
 ---
 
 Credits:
