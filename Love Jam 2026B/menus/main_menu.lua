@@ -17,7 +17,7 @@ function menu:enter()
             x = (screenWidth / 2) - 100, --screenwidth with half of the button's width taken off
             y = 200,
             w = 200,
-            h = 50,
+            h = 50
         },
         {
             text = "Settings",
@@ -31,7 +31,7 @@ function menu:enter()
             x = (screenWidth / 2) - 100,
             y = 400,
             w = 200,
-            h = 50,
+            h = 50
         }
     }
 end
