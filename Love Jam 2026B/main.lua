@@ -2,6 +2,9 @@ local currentScene
 
 function LoadScene(scene)
     currentScene = scene
+    local inGame = currentScene == require("game")
+    love.mouse.setVisible(not inGame)
+    love.mouse.setGrabbed(inGame)
     if currentScene.enter then currentScene.enter(currentScene) end
 
 end

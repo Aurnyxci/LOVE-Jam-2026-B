@@ -8,21 +8,24 @@ local player = {x = 320, y = 320, w = 32, h = 64, isOnGround = false}
 local platforms = {
     {x = 0, y = 544, w = 800, h = 64, tag = "ground"}, -- Temp Ground
     {x = 0, y = 0, w = 32, h = 544}, -- Temp Left Wall
-    {x = 768, y = 0, w = 32, h =480}, -- Temp Right Wall
+    {x = 768, y = 0, w = 32, h = 480}, -- Temp Right Wall
 }
 
 -- Temp Tray
-local tray = {halfW = 64, gap = 24, offset = 0, x = 336, vx = 0, vy = 0, tilt = 0}
+local tray = {halfW = 64, gap = 24, offset = 0, x = 336, y = 288, vx = 0, vy = 0, tilt = 0, sideH = 24}
 
--- Haven't used
+-- Temp Items
 local items = {
-    {x = 480, y = 524, w = 20, h = 20},
-    {x = 700, y = 524, w = 20, h = 20},
+    {x = 480, y = 524, w = 24, h = 24},
+    {x = 700, y = 524, w = 24, h = 24},
 }
 
 -- Physics World (Box2D) from Love Engine
 local world
 local playerBody
+local trayBody
+-- check if can pick up
+local nearbyItem
 
 local fixtureTags = {}
 
@@ -36,7 +39,6 @@ local function isGrounded()
             local playerIsB = fixtureB:getBody() == playerBody
 
             if playerIsA or playerIsB then
-
                 local otherFixture
                 if playerIsA then
                     otherFixture = fixtureB
@@ -54,20 +56,17 @@ local function isGrounded()
     return false
 end
 
-
 -- tray has two endpoints they are calculated based on the position and tilt angle of the tray
 local function trayEnds()
-    local y = player.y - tray.gap + tray.offset
     local dx = math.cos(tray.tilt) * tray.halfW
     local dy = math.sin(tray.tilt) * tray.halfW
-    return tray.x - dx, y + dy, tray.x + dx, y - dy
+    return tray.x - dx, tray.y + dy, tray.x + dx, tray.y - dy
 end
 
 -- Verlet algorithm -> Rope Simulate as hands
 local ropes = {}
 
 -- The rope's offsets of player’s shoulder, left rope put it on player.x + 8, right rope put it on player.x + 24
-
 local ROPE_SHOULDER_OFFSETS = {8, 24}
 
 local function resetRopes()
@@ -130,7 +129,7 @@ local function updateRopes(dt)
         for j = 2, pointCount - 1 do
             local point = points[j]
 
-            local vx = (point.x - point.px) * 0.97
+            local vx = (point.x - point.px) * 0.985
             local vy = (point.y - point.py) * 0.97
 
             point.px, point.py = point.x, point.y
@@ -177,7 +176,7 @@ local function drawRopes()
             table.insert(linePoints, point.x)
             table.insert(linePoints, point.y)
         end
-        
+
         love.graphics.line(linePoints)
     end
 
@@ -189,7 +188,9 @@ function Game.enter(self)
     player.isOnGround = false
     tray.offset, tray.vy = 0, 0
     tray.x, tray.vx = player.x + player.w * 0.5, 0
+    tray.y = player.y - tray.gap
     tray.tilt = 0
+    nearbyItem = nil
 
     -- Gravity Settings (900 px/s²,now)
     love.physics.setMeter(64)
@@ -202,6 +203,7 @@ function Game.enter(self)
 
     local playerFixture = love.physics.newFixture(playerBody, love.physics.newRectangleShape(player.w, player.h))
     playerFixture:setFriction(0)
+    playerFixture:setGroupIndex(-1)
 
     -- Platforms Settings
     -- every platform is a rigidbody with tag
@@ -214,16 +216,57 @@ function Game.enter(self)
         local platformBody = love.physics.newBody(world, platformCenterX, platformCenterY, "static")
 
         local platformFixture = love.physics.newFixture(platformBody, love.physics.newRectangleShape(platform.w, platform.h))
+        platformFixture:setFriction(1.5)
 
         -- tag
         fixtureTags[platformFixture] = platform.tag
+    end
+
+    -- Tray Physics
+    trayBody = love.physics.newBody(world, tray.x, player.y - tray.gap, "kinematic")
+    local trayFixture = love.physics.newFixture(
+        trayBody,
+        love.physics.newRectangleShape(tray.halfW * 2, 6)
+    )
+    trayFixture:setFriction(1.5)
+    trayFixture:setGroupIndex(-1)
+
+    local leftTrayFixture = love.physics.newFixture(
+        trayBody,
+        love.physics.newRectangleShape(-tray.halfW + 3, -3 - tray.sideH * 0.5, 6, tray.sideH)
+    )
+    leftTrayFixture:setFriction(1.5)
+    leftTrayFixture:setGroupIndex(-1)
+
+    local rightTrayFixture = love.physics.newFixture(
+        trayBody,
+        love.physics.newRectangleShape(tray.halfW - 3, -3 - tray.sideH * 0.5, 6, tray.sideH)
+    )
+    rightTrayFixture:setFriction(1.5)
+    rightTrayFixture:setGroupIndex(-1)
+
+    -- Items Physics
+    for _, item in ipairs(items) do
+        item.body = love.physics.newBody(
+            world,
+            item.x + item.w * 0.5,
+            item.y + item.h * 0.5,
+            "dynamic"
+        )
+        item.body:setLinearDamping(2)
+        item.body:setAngularDamping(8)
+        item.fixture = love.physics.newFixture(
+            item.body,
+            love.physics.newRectangleShape(item.w, item.h)
+        )
+        item.fixture:setFriction(1.5)
+        item.fixture:setRestitution(0.1)
     end
 
     resetRopes()
 end
 
 function Game.update(self, dt)
-
     -- Player Input
     local speed = 320
     local moveX = 0
@@ -235,7 +278,7 @@ function Game.update(self, dt)
     end
 
     -- keep our horizontal velocity, and use engine's rigidbody physics velocity(for gravity)
-    local currentVx, currentVy = playerBody:getLinearVelocity()
+    local _, currentVy = playerBody:getLinearVelocity()
     playerBody:setLinearVelocity(moveX, currentVy)
 
     world:update(dt)
@@ -245,62 +288,74 @@ function Game.update(self, dt)
     player.x = bodyX - player.w * 0.5
     player.y = bodyY - player.h * 0.5
 
-    -- Landing
-    -- make the tray sink(more "jelly")
     local grounded = isGrounded()
-    -- grounded is for checking if the player is currently on the ground
-    -- not player.isOnGround is for checking if the player's previous position is on the ground
-    -- so that can make the effect: when player landing the tray sinks
     if grounded and not player.isOnGround and currentVy > 100 then
         tray.vy = tray.vy + currentVy * 2
     end
     player.isOnGround = grounded
 
-    -- the tray keeps following player but its velocity is less than player so that can be more "jelly"
-    -- tray's velocity is like spring so I used spring physics to make it more "jelly"
-    -- spring phsics(according to damped harmonic oscillator):F_spring = -k * displacement, F_damp = -c * velocity, F = -k*displacement - c*velocity
-    -- so that we get a = -k*displacement - c*velocity which like the (-40 * (tray.x - targetX) - 5 * tray.vx) below times the time, get the spring-like velocity
-    local targetX = player.x + player.w * 0.5
-    tray.vx = tray.vx + (-40 * (tray.x - targetX) - 5 * tray.vx) * dt
+    local playerCenterX = player.x + player.w * 0.5
+    local playerCenterY = player.y + player.h * 0.5
+
+    -- Horizontal spring makes the tray lag behind the player
+    tray.vx = tray.vx + (-40 * (tray.x - playerCenterX) - 5 * tray.vx) * dt
     tray.x = tray.x + tray.vx * dt
 
-    -- If the tray position is offset in the vertical direction
-    -- pull it down if it is up, and pull it up if it is down, until it returns the original position
+    -- Soft vertical movement
     tray.vy = tray.vy + (-500 * tray.offset - 7 * tray.vy) * dt
     tray.offset = tray.offset + tray.vy * dt
+    tray.y = player.y - tray.gap + tray.offset
 
-    -- Tray tilt(max is 0.35rads)
-    local targetTilt = (targetX - tray.x) * 0.006
-    local maxTilt = 0.35
-    if targetTilt > maxTilt then
-        targetTilt = maxTilt
-    end
-    if targetTilt < -maxTilt then
-        targetTilt = -maxTilt
-    end
+    -- Slight tilt caused by the horizontal lag
+    local targetTilt = math.max(-0.35, math.min(0.35, (playerCenterX - tray.x) * 0.006))
     tray.tilt = tray.tilt + (targetTilt - tray.tilt) * 10 * dt
 
-    updateRopes(dt)
+    -- Move the tray with real velocities so collisions transfer momentum
+    local trayBodyX, trayBodyY = trayBody:getPosition()
+    trayBody:setLinearVelocity((tray.x - trayBodyX) / dt, (tray.y - trayBodyY) / dt)
+    trayBody:setAngularVelocity((-tray.tilt - trayBody:getAngle()) / dt)
 
+    -- Find the closest item within pickup range
+    nearbyItem = nil
+    local closestDistance = 50 * 50
+    for _, item in ipairs(items) do
+        local itemX, itemY = item.body:getPosition()
+        local dx = itemX - playerCenterX
+        local dy = itemY - playerCenterY
+        local distance = dx * dx + dy * dy
+        if distance < closestDistance then
+            closestDistance = distance
+            nearbyItem = item
+        end
+    end
+
+    updateRopes(dt)
 end
 
-function Game.keypressed(self, key)
+function Game.keypressed(self, key)     
     if key == "space" then
         if player.isOnGround then
             -- Jump
             local currentVx = playerBody:getLinearVelocity()
             playerBody:setLinearVelocity(currentVx, -320)
             player.isOnGround = false
-
-            -- sink the tray when jumping
             tray.vy = tray.vy + 130
         end
     end
-
+    -- pick up item
+    if key == "e" and nearbyItem then
+        local trayY = tray.y
+        local itemOffset = 4 + nearbyItem.h * 0.5
+        local itemX = tray.x - math.sin(tray.tilt) * itemOffset
+        local itemY = trayY - math.cos(tray.tilt) * itemOffset
+        nearbyItem.body:setPosition(itemX, itemY)
+        nearbyItem.body:setLinearVelocity(0, 0)
+        nearbyItem.body:setAngularVelocity(0)
+        nearbyItem.body:setAwake(true)
+    end
 end
 
 function Game.draw(self)
-
     -- Draw Temp Colour of Background
     love.graphics.clear(0.1, 0.1, 0.1)
 
@@ -322,12 +377,27 @@ function Game.draw(self)
     love.graphics.setLineWidth(3)
     love.graphics.line(leftX, leftY, rightX, rightY)
 
-    -- Draw Items (Temp Test)
-    love.graphics.setColor(1, 0.8, 0.35)
-    for _, item in ipairs(items) do
-        love.graphics.rectangle("fill", item.x, item.y, item.w, item.h)
-    end
+    local sideOffsetX = math.sin(tray.tilt) * tray.sideH
+    local sideOffsetY = math.cos(tray.tilt) * tray.sideH
+    love.graphics.line(leftX, leftY, leftX - sideOffsetX, leftY - sideOffsetY)
+    love.graphics.line(rightX, rightY, rightX - sideOffsetX, rightY - sideOffsetY)
 
+    -- Draw Items (Temp Test)
+    for _, item in ipairs(items) do
+        local itemX, itemY = item.body:getPosition()
+        love.graphics.push()
+        love.graphics.translate(itemX, itemY)
+        love.graphics.rotate(item.body:getAngle())
+        love.graphics.setColor(1, 0.8, 0.35)
+        love.graphics.rectangle("fill", -item.w * 0.5, -item.h * 0.5, item.w, item.h)
+        if item == nearbyItem then
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.setLineWidth(2)
+            love.graphics.rectangle("line", -item.w * 0.5 - 2, -item.h * 0.5 - 2, item.w + 4, item.h + 4)
+        end
+        love.graphics.pop()
+    end
+    love.graphics.setLineWidth(1)
 end
 
 return Game
