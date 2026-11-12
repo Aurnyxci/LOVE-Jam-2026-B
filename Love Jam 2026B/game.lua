@@ -318,10 +318,10 @@ function Game.update(self, dt)
     -- Player Input
     local speed = 320
     local moveX = 0
-    if love.keyboard.isDown("right", "d") then
+    if love.keyboard.isDown(ctrls[2].keybind) then
         moveX = moveX + speed
     end
-    if love.keyboard.isDown("left", "a") then
+    if love.keyboard.isDown(ctrls[1].keybind) then
         moveX = moveX - speed
     end
 
@@ -381,7 +381,7 @@ function Game.update(self, dt)
 end
 
 function Game.keypressed(self, key)     
-    if key == "space" then
+    if key == ctrls[3].keybind then
         if player.isOnGround then
             -- Jump
             local currentVx = playerBody:getLinearVelocity()
@@ -391,7 +391,7 @@ function Game.keypressed(self, key)
         end
     end
     -- pick up item
-    if key == "e" and nearbyItem then
+    if key == ctrls[4].keybind and nearbyItem then
         local trayY = tray.y
         local itemOffset = 4 + nearbyItem.h * 0.5
         local itemX = tray.x - math.sin(tray.tilt) * itemOffset

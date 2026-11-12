@@ -6,7 +6,7 @@ function options:enter()
     self.buttonFont = love.graphics.newFont(
     "assets/fonts/Tiny5Duo-VariableFont_BLED,JITT,ROND,wdth,wght.ttf",
     24
-)
+    )
     local screenWidth = love.graphics.getWidth()
     local screenHeight = love.graphics.getHeight()
 
@@ -20,7 +20,7 @@ function options:enter()
         }
     }
 
-    self.ctrls = {
+    --[[ctrls = {
         {
             action = "Move Left",
             keybind = "a"
@@ -30,10 +30,22 @@ function options:enter()
             keybind = "d"
         },
         {
-            action = "jump",
+            action = "Jump",
             keybind = "space"
+        },
+        {
+            action = "Pick Up Item",
+            keybind = "e"
+        },
+        {
+            action = "Return to Main Menu",
+            keybind = "escape"
+        },
+        {
+            action = "Close Game",
+            keybind = "f5"
         }
-    }
+    }]]
 end
 
 ctrls.keybind{}

@@ -10,8 +10,11 @@ function LoadScene(scene)
 end
 
 function love.load()
+    local json = require("libs.json") --loads json library
+    ctrls = json.decode(love.filesystem.read("controls.json")) --loads ctrls json
+
     love.graphics.setDefaultFilter("nearest","nearest")
-    LoadScene(require("menus/main_menu"))
+    LoadScene(require("menus/main_menu")) --loads the main menu
 
 end
 
@@ -26,8 +29,8 @@ function love.draw()
 end
 
 function love.keypressed(key)
-    if key == "escape" then LoadScene(require("menus/main_menu")) return end
-    if key == "f5"  then love.event.quit("restart") return end
+    if key == ctrls[5].keybind then LoadScene(require("menus/main_menu")) return end
+    if key == ctrls[6].keybind then love.event.quit("restart") return end
     if currentScene.keypressed then currentScene.keypressed(currentScene,key) end
 
 end
