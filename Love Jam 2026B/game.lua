@@ -14,23 +14,29 @@ local player = {
 local platforms = {
     { -- Temp Ground
         x = 0,
-        y = 544,
-        w = 800,
+        y = (love.graphics.getWidth())/2+16,
+        w = love.graphics.getWidth(),
         h = 64,
         tag = "ground"
     },
     { -- Temp Left Wall
         x = 0,
         y = 0,
-        w = 32,
-        h = 544
+        w = 64,
+        h = love.graphics.getHeight()
     },
     { -- Temp Right Wall
-        x = 768,
+        x = love.graphics.getWidth()-64,
         y = 0,
-        w = 32,
-        h = 480
-    }
+        w = 64,
+        h = love.graphics.getHeight()
+    },
+    { -- Temp Ceiling
+        x = 0,
+        y = 0,
+        w = love.graphics.getWidth(),
+        h = 64
+    },
 }
 
 -- Temp Tray
@@ -39,7 +45,7 @@ local tray = {
     gap = 24, 
     offset = 0, 
     x = 336, 
-    y = 288, 
+    y = 288,
     vx = 0, 
     vy = 0, 
     tilt = 0, 
@@ -208,7 +214,7 @@ local function updateRopes(dt)
 end
 
 local function drawRopes()
-    love.graphics.setColor(0, 0, 0)
+    love.graphics.setColor(0.61, 0.86, 0.26)
     love.graphics.setLineWidth(3)
 
     for _, rope in ipairs(ropes) do
@@ -399,10 +405,10 @@ end
 
 function Game.draw(self)
     -- Draw Temp Colour of Background
-    love.graphics.clear(0.1, 0.1, 0.1)
+    love.graphics.clear(0.13, 0.84, 0.78)
 
     -- Draw Platforms (Temp Test)
-    love.graphics.setColor(0.3, 0.3, 0.5)
+    love.graphics.setColor(0.00, 0.58, 0.91)
     for _, platform in ipairs(platforms) do
         love.graphics.rectangle("fill", platform.x, platform.y, platform.w, platform.h)
     end
@@ -410,12 +416,12 @@ function Game.draw(self)
     drawRopes()
 
     -- Draw Player (Temp Test)
-    love.graphics.setColor(0.9, 0.9, 1)
+    love.graphics.setColor(0.35, 0.76, 0.21)
     love.graphics.rectangle("fill", player.x, player.y, player.w, player.h)
 
     -- Draw Tray (Temp Test)
     local leftX, leftY, rightX, rightY = trayEnds()
-    love.graphics.setColor(0.5, 0.5, 1)
+    love.graphics.setColor(0.85,0.85,0.85)
     love.graphics.setLineWidth(3)
     love.graphics.line(leftX, leftY, rightX, rightY)
 
@@ -430,7 +436,7 @@ function Game.draw(self)
         love.graphics.push()
         love.graphics.translate(itemX, itemY)
         love.graphics.rotate(item.body:getAngle())
-        love.graphics.setColor(1, 0.8, 0.35)
+        love.graphics.setColor(1.00, 0.84, 0.25)
         love.graphics.rectangle("fill", -item.w * 0.5, -item.h * 0.5, item.w, item.h)
         if item == nearbyItem then
             love.graphics.setColor(1, 1, 1)
