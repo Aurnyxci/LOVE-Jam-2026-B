@@ -7,8 +7,6 @@ function options:enter()
     "assets/fonts/Tiny5Duo-VariableFont_BLED,JITT,ROND,wdth,wght.ttf",
     24
     )
-    local screenWidth = love.graphics.getWidth()
-    local screenHeight = love.graphics.getHeight()
 
     self.buttons = {
         {
@@ -20,8 +18,6 @@ function options:enter()
         }
     }
 end
-
-ctrls.keybind{}
 
 local function isMouseOver(button)
     local mx, my = love.mouse.getPosition() --finds the mouse position
@@ -64,6 +60,19 @@ function options:draw()
             "center"
         )
     end
+
+
+    --im trying to make a ctrls viewer but its not wroking atp and irdk why :sob:
+    --[[for _, c in ipairs(ctrls) do
+        love.graphics.printf(
+            ctrls[i].action .. ": " .. ctrls[i].keybind,
+            screenWidth / 2,
+            (i * 50) + 100,
+            200,
+            "center"
+        )
+    end]]
+
 end
 
 function options:mousepressed(x, y, button) --checks if the mouse is pressed on the button and what to do afterwards

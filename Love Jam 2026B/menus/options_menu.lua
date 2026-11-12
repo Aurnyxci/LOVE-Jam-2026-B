@@ -8,9 +8,7 @@ function options:enter()
     self.buttonFont = love.graphics.newFont(
     "assets/fonts/Tiny5Duo-VariableFont_BLED,JITT,ROND,wdth,wght.ttf",
     24
-)
-    local screenWidth = love.graphics.getWidth()
-    local screenHeight = love.graphics.getHeight()
+    )
 
     self.buttons = {
         {
@@ -91,7 +89,7 @@ function options:draw()
                 )
             end
         else
-             love.graphics.setColor(1, 1, 1)
+            love.graphics.setColor(1, 1, 1)
             love.graphics.setFont(self.buttonFont)
             love.graphics.printf(
                 button.text,

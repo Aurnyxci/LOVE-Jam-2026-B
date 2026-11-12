@@ -13,6 +13,9 @@ function love.load()
     local json = require("libs.json") --loads json library
     ctrls = json.decode(love.filesystem.read("controls.json")) --loads ctrls json
 
+    screenWidth = love.graphics.getWidth()
+    screenHeight = love.graphics.getHeight()
+
     love.graphics.setDefaultFilter("nearest","nearest")
     LoadScene(require("menus/main_menu")) --loads the main menu
 
