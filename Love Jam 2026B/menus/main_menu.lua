@@ -17,10 +17,10 @@ function menu:enter()
             x = (screenWidth / 2) - 100, --screenwidth with half of the button's width taken off
             y = 200,
             w = 200,
-            h = 50,
+            h = 50
         },
         {
-            text = "Settings",
+            text = "Options",
             x = (screenWidth / 2) - 100,
             y = 300,
             w = 200,
@@ -31,7 +31,7 @@ function menu:enter()
             x = (screenWidth / 2) - 100,
             y = 400,
             w = 200,
-            h = 50,
+            h = 50
         }
     }
 end
@@ -95,9 +95,9 @@ function menu:mousepressed(x, y, button) --checks if the mouse is pressed on the
                 LoadScene(require("game"))
                 print("starting game")
 
-            elseif b.text == "Settings" then
+            elseif b.text == "Options" then
                 print("opening settings")
-                LoadScene(require("menus/settings_menu"))
+                LoadScene(require("menus/options_menu"))
 
             elseif b.text == "Quit" then --checks if the button is quit so then it quits
                 print("quitting")

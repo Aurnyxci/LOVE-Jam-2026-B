@@ -2,22 +2,64 @@ local Game = {}
 
 -- We mainly use playerBody:setLinearVelocity() to change player's velocity
 -- It is Love Engine's Box2D function of the linear velocity of a rigidbody object
-local player = {x = 320, y = 320, w = 32, h = 64, isOnGround = false}
+local player = {
+    x = 320,
+    y = 320,
+    w = 32,
+    h = 64,
+    isOnGround = false
+}
 
 -- Temp Platforms
 local platforms = {
-    {x = 0, y = 544, w = 800, h = 64, tag = "ground"}, -- Temp Ground
-    {x = 0, y = 0, w = 32, h = 544}, -- Temp Left Wall
-    {x = 768, y = 0, w = 32, h = 480}, -- Temp Right Wall
+    { -- Temp Ground
+        x = 0,
+        y = 544,
+        w = 800,
+        h = 64,
+        tag = "ground"
+    },
+    { -- Temp Left Wall
+        x = 0,
+        y = 0,
+        w = 32,
+        h = 544
+    },
+    { -- Temp Right Wall
+        x = 768,
+        y = 0,
+        w = 32,
+        h = 480
+    }
 }
 
 -- Temp Tray
-local tray = {halfW = 64, gap = 24, offset = 0, x = 336, y = 288, vx = 0, vy = 0, tilt = 0, sideH = 24}
+local tray = {
+    halfW = 64, 
+    gap = 24, 
+    offset = 0, 
+    x = 336, 
+    y = 288, 
+    vx = 0, 
+    vy = 0, 
+    tilt = 0, 
+    sideH = 24
+}
 
 -- Temp Items
 local items = {
-    {x = 480, y = 524, w = 24, h = 24},
-    {x = 700, y = 524, w = 24, h = 24},
+    {
+        x = 480, 
+        y = 524, 
+        w = 24, 
+        h = 24
+    },
+    {
+        x = 700, 
+        y = 524, 
+        w = 24, 
+        h = 24
+    }
 }
 
 -- Physics World (Box2D) from Love Engine
