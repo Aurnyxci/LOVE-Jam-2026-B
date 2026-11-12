@@ -19,33 +19,6 @@ function options:enter()
             h = 50
         }
     }
-
-    --[[ctrls = {
-        {
-            action = "Move Left",
-            keybind = "a"
-        },
-        {
-            action = "Move Right",
-            keybind = "d"
-        },
-        {
-            action = "Jump",
-            keybind = "space"
-        },
-        {
-            action = "Pick Up Item",
-            keybind = "e"
-        },
-        {
-            action = "Return to Main Menu",
-            keybind = "escape"
-        },
-        {
-            action = "Close Game",
-            keybind = "f5"
-        }
-    }]]
 end
 
 ctrls.keybind{}
