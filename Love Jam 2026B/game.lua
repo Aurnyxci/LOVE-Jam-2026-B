@@ -55,7 +55,7 @@ local tray = {
     vx = 0, 
     vy = 0, 
     tilt = 0, 
-    sideH = 24
+    extend = 16
 }
 
 -- Temp Items
@@ -63,14 +63,14 @@ local items = {
     {
         x = 480, 
         y = 524, 
-        w = 60, 
-        h = 40
+        w = 45, 
+        h = 30
     },
     {
         x = 700, 
         y = 524, 
-        w = 60, 
-        h = 40
+        w = 45, 
+        h = 30
     }
 }
 
@@ -84,7 +84,14 @@ local nearbyItem
 -- The player is assembled from several layered sprites (body, legs, head)
 local playerSprites
 local itemSprite
-local armSprite
+-- Left and right arm sprites with their own shoulder(anchor)/hand positions
+local armLSprite
+local armRSprite
+local ARM_L_ANCHOR_X, ARM_L_ANCHOR_Y = 37, 41
+local ARM_L_HAND_X, ARM_L_HAND_Y = 14, 6
+local ARM_R_ANCHOR_X, ARM_R_ANCHOR_Y = 2, 41
+local ARM_R_HAND_X, ARM_R_HAND_Y = 27, 6
+local traySprite
 
 local fixtureTags = {}
 
@@ -122,24 +129,18 @@ local function trayEnds()
     return tray.x - dx, tray.y + dy, tray.x + dx, tray.y - dy
 end
 
--- These values are shoulder and hand's end position, so the arm can be stretched between the shoulder and the tray end
-local ARM_ANCHOR_X, ARM_ANCHOR_Y = 22, 2
-local ARM_HAND_X, ARM_HAND_Y = 9, 44
-local ARM_LENGTH = math.sqrt(
-    (ARM_HAND_X - ARM_ANCHOR_X) ^ 2 + (ARM_HAND_Y - ARM_ANCHOR_Y) ^ 2
-)
-
-local function drawArm(startX, startY, endX, endY)
+local function drawArm(sprite, anchorX, anchorY, handX, handY, startX, startY, endX, endY)
     local dx = endX - startX
     local dy = endY - startY
-    local stretch = math.sqrt(dx * dx + dy * dy) / ARM_LENGTH
+    local armLength = math.sqrt((handX - anchorX) ^ 2 + (handY - anchorY) ^ 2)
+    local stretch = math.sqrt(dx * dx + dy * dy) / armLength
     local width = 1 + (stretch - 1) * 0.2
     local handAngle = math.atan2(
-        (ARM_HAND_Y - ARM_ANCHOR_Y) * stretch,
-        (ARM_HAND_X - ARM_ANCHOR_X) * width
+        (handY - anchorY) * stretch,
+        (handX - anchorX) * width
     )
 
-    love.graphics.draw(armSprite, startX, startY, math.atan2(dy, dx) - handAngle, width, stretch, ARM_ANCHOR_X, ARM_ANCHOR_Y)
+    love.graphics.draw(sprite, startX, startY, math.atan2(dy, dx) - handAngle, width, stretch, anchorX, anchorY)
 end
 
 local function drawArms()
@@ -151,8 +152,8 @@ local function drawArms()
     local shoulderX = player.x + player.w * 0.5
     local shoulderY = player.y + player.h - 81 * player.scaleY
 
-    drawArm(shoulderX - 7 * player.scaleX, shoulderY, leftX, leftY)
-    drawArm(shoulderX + 7 * player.scaleX, shoulderY, rightX, rightY)
+    drawArm(armLSprite, ARM_L_ANCHOR_X, ARM_L_ANCHOR_Y, ARM_L_HAND_X, ARM_L_HAND_Y, shoulderX - 7 * player.scaleX, shoulderY, leftX, leftY)
+    drawArm(armRSprite, ARM_R_ANCHOR_X, ARM_R_ANCHOR_Y, ARM_R_HAND_X, ARM_R_HAND_Y, shoulderX + 7 * player.scaleX, shoulderY, rightX, rightY)
 end
 
 function Game.enter(self)
@@ -194,28 +195,14 @@ function Game.enter(self)
         fixtureTags[platformFixture] = platform.tag
     end
 
-    -- Tray Physics
+    -- Tray Physics, collider matches the flat plate sprite
     trayBody = love.physics.newBody(world, tray.x, player.y - tray.gap, "kinematic")
     local trayFixture = love.physics.newFixture(
         trayBody,
-        love.physics.newRectangleShape(tray.halfW * 2, 6)
+        love.physics.newRectangleShape(tray.halfW * 2, 8)
     )
     trayFixture:setFriction(1.5)
     trayFixture:setGroupIndex(-1)
-
-    local leftTrayFixture = love.physics.newFixture(
-        trayBody,
-        love.physics.newRectangleShape(-tray.halfW + 3, -3 - tray.sideH * 0.5, 6, tray.sideH)
-    )
-    leftTrayFixture:setFriction(1.5)
-    leftTrayFixture:setGroupIndex(-1)
-
-    local rightTrayFixture = love.physics.newFixture(
-        trayBody,
-        love.physics.newRectangleShape(tray.halfW - 3, -3 - tray.sideH * 0.5, 6, tray.sideH)
-    )
-    rightTrayFixture:setFriction(1.5)
-    rightTrayFixture:setGroupIndex(-1)
 
     -- Items Physics
     for _, item in ipairs(items) do
@@ -231,7 +218,7 @@ function Game.enter(self)
         item.fixture = love.physics.newFixture(
             item.body,
             -- trapezoid fitted to the jelly sprite -> wide bottom, narrower top
-            love.physics.newPolygonShape(-24, 20, 24, 20, 18, -20, -18, -20)
+            love.physics.newPolygonShape(-18, 15, 18, 15, 13.5, -15, -13.5, -15)
         )
         item.fixture:setFriction(1.5)
         item.fixture:setRestitution(0.1)
@@ -253,8 +240,12 @@ function Game.enter(self)
         table.insert(playerSprites, love.graphics.newImage("assets/sprites/layered/" .. partName .. ".png"))
     end
 
-    -- Arm
-    armSprite = love.graphics.newImage("assets/sprites/unique/5-left_arm.png")
+    -- Arms
+    armLSprite = love.graphics.newImage("assets/sprites/unique/armL_rev01.png")
+    armRSprite = love.graphics.newImage("assets/sprites/unique/armR_rev01.png")
+
+    -- Tray
+    traySprite = love.graphics.newImage("assets/sprites/unique/plate_rev01.png")
 
     -- Item
     itemSprite = love.graphics.newImage("assets/sprites/unique/7-jelly.png")
@@ -389,6 +380,11 @@ function Game.draw(self)
         love.graphics.rectangle("fill", platform.x, platform.y, platform.w, platform.h)
     end
 
+    -- Draw Tray (behind hands)
+    love.graphics.setColor(1, 1, 1)
+    local s = (tray.halfW * 2 + tray.extend * 2) / traySprite:getWidth()
+    love.graphics.draw(traySprite, tray.x, tray.y, -tray.tilt, s, s, traySprite:getWidth() * 0.5, traySprite:getHeight() * 0.5)
+
     drawArms()
 
     -- Draw Player
@@ -401,17 +397,6 @@ function Game.draw(self)
         love.graphics.draw(sprite, player.x + player.w * 0.5, player.y + player.h, 0, player.scaleX * player.facing, player.scaleY, 31, 128)
     end
 
-    -- Draw Tray (Temp Test)
-    local leftX, leftY, rightX, rightY = trayEnds()
-    love.graphics.setColor(0.85,0.85,0.85)
-    love.graphics.setLineWidth(3)
-    love.graphics.line(leftX, leftY, rightX, rightY)
-
-    local sideOffsetX = math.sin(tray.tilt) * tray.sideH
-    local sideOffsetY = math.cos(tray.tilt) * tray.sideH
-    love.graphics.line(leftX, leftY, leftX - sideOffsetX, leftY - sideOffsetY)
-    love.graphics.line(rightX, rightY, rightX - sideOffsetX, rightY - sideOffsetY)
-
     -- Draw Items
     for _, item in ipairs(items) do
         local itemX, itemY = item.body:getPosition()
@@ -419,7 +404,7 @@ function Game.draw(self)
         love.graphics.translate(itemX, itemY)
         love.graphics.setColor(1, 1, 1)
         -- scale around the sprite's bottom, keep the jelly stays on the ground
-        love.graphics.draw(itemSprite, 0, 20, 0, 2 * (1 + (1 - item.squash) * 0.7), 2 * item.squash, itemSprite:getWidth() * 0.5, itemSprite:getHeight())
+        love.graphics.draw(itemSprite, 0, 15, 0, 1.5 * (1 + (1 - item.squash) * 0.7), 1.5 * item.squash, itemSprite:getWidth() * 0.5, itemSprite:getHeight())
         if item == nearbyItem then
             love.graphics.setColor(1, 1, 1)
             love.graphics.setLineWidth(2)
