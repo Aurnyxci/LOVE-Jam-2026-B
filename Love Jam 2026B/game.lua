@@ -4,10 +4,16 @@ local Game = {}
 -- It is Love Engine's Box2D function of the linear velocity of a rigidbody object
 local player = {
     x = 320,
-    y = 320,
-    w = 32,
-    h = 64,
-    isOnGround = false
+    y = 248,
+    w = 64,
+    h = 128,
+    isOnGround = false,
+    scaleX = 1,
+    scaleY = 1,
+    squash = 1,
+    squashV = 0,
+    lastMoveX = 0,
+    facing = 1
 }
 
 -- Temp Platforms
@@ -42,7 +48,7 @@ local platforms = {
 -- Temp Tray
 local tray = {
     halfW = 64, 
-    gap = 24, 
+    gap = 8, 
     offset = 0, 
     x = 336, 
     y = 288,
@@ -57,14 +63,14 @@ local items = {
     {
         x = 480, 
         y = 524, 
-        w = 24, 
-        h = 24
+        w = 60, 
+        h = 40
     },
     {
         x = 700, 
         y = 524, 
-        w = 24, 
-        h = 24
+        w = 60, 
+        h = 40
     }
 }
 
@@ -74,6 +80,11 @@ local playerBody
 local trayBody
 -- check if can pick up
 local nearbyItem
+
+-- The player is assembled from several layered sprites (body, legs, head)
+local playerSprites
+local itemSprite
+local armSprite
 
 local fixtureTags = {}
 
@@ -111,128 +122,41 @@ local function trayEnds()
     return tray.x - dx, tray.y + dy, tray.x + dx, tray.y - dy
 end
 
--- Verlet algorithm -> Rope Simulate as hands
-local ropes = {}
+-- These values are shoulder and hand's end position, so the arm can be stretched between the shoulder and the tray end
+local ARM_ANCHOR_X, ARM_ANCHOR_Y = 22, 2
+local ARM_HAND_X, ARM_HAND_Y = 9, 44
+local ARM_LENGTH = math.sqrt(
+    (ARM_HAND_X - ARM_ANCHOR_X) ^ 2 + (ARM_HAND_Y - ARM_ANCHOR_Y) ^ 2
+)
 
--- The rope's offsets of player’s shoulder, left rope put it on player.x + 8, right rope put it on player.x + 24
-local ROPE_SHOULDER_OFFSETS = {8, 24}
+local function drawArm(startX, startY, endX, endY)
+    local dx = endX - startX
+    local dy = endY - startY
+    local stretch = math.sqrt(dx * dx + dy * dy) / ARM_LENGTH
+    local width = 1 + (stretch - 1) * 0.2
+    local handAngle = math.atan2(
+        (ARM_HAND_Y - ARM_ANCHOR_Y) * stretch,
+        (ARM_HAND_X - ARM_ANCHOR_X) * width
+    )
 
-local function resetRopes()
-    ropes = {}
+    love.graphics.draw(armSprite, startX, startY, math.atan2(dy, dx) - handAngle, width, stretch, ARM_ANCHOR_X, ARM_ANCHOR_Y)
+end
+
+local function drawArms()
+    love.graphics.setColor(1, 1, 1)
 
     local leftX, leftY, rightX, rightY = trayEnds()
 
-    for i, shoulderOffset in ipairs(ROPE_SHOULDER_OFFSETS) do
-        local isLeftRope = (i == 1)
+    -- shoulders follow the body scale
+    local shoulderX = player.x + player.w * 0.5
+    local shoulderY = player.y + player.h - 81 * player.scaleY
 
-        -- player's shoulder position
-        local startX = player.x + shoulderOffset
-        local startY = player.y + 20
-
-        -- the end position of rope, now is in the tray's left edge and right edge
-        local endX, endY
-        if isLeftRope then
-            endX, endY = leftX, leftY
-        else
-            endX, endY = rightX, rightY
-        end
-
-        -- the rope is divided into 5 parts which also means it is consist of 6 mass points
-        -- the length of the rope is 10% longer(x1.1) than a straight line
-        -- Under the Verlet algorithm, the "hand" formed by the rope will be more "Jelly"
-        local rope = {points = {}, shoulderOffset = shoulderOffset, isLeftRope = isLeftRope}
-        local straightDistance = math.sqrt((endX - startX) ^ 2 + (endY - startY) ^ 2)
-        rope.segmentLength = straightDistance / 5 * 1.1
-
-        -- set the 6 mass points
-        for j = 0, 5 do
-            local t = j / 5
-            local x = startX + (endX - startX) * t
-            local y = startY + (endY - startY) * t
-            rope.points[j + 1] = {x = x, y = y, px = x, py = y}
-        end
-
-        ropes[i] = rope
-    end
-end
-
-local function updateRopes(dt)
-    for _, rope in ipairs(ropes) do
-        local points = rope.points
-        local pointCount = #points
-
-        -- the first point is on player's shoulder
-        points[1].x = player.x + rope.shoulderOffset
-        points[1].y = player.y + 20
-
-        -- the last point is on the end of tray's edge
-        local leftX, leftY, rightX, rightY = trayEnds()
-        if rope.isLeftRope then
-            points[pointCount].x, points[pointCount].y = leftX, leftY
-        else
-            points[pointCount].x, points[pointCount].y = rightX, rightY
-        end
-
-        -- the middle points use Verlet: "current position - the previous moment position" as velocity
-        for j = 2, pointCount - 1 do
-            local point = points[j]
-
-            local vx = (point.x - point.px) * 0.985
-            local vy = (point.y - point.py) * 0.97
-
-            point.px, point.py = point.x, point.y
-            point.x = point.x + vx
-            point.y = point.y + vy + 900 * dt * dt
-        end
-
-        -- Repeatedly pull two adjacent points back to the set length, so that the rope can't be stretched
-        for k = 1, 5 do
-            for j = 1, pointCount - 1 do
-                local a = points[j]
-                local b = points[j + 1]
-
-                local dx = b.x - a.x
-                local dy = b.y - a.y
-                local distance = math.sqrt(dx * dx + dy * dy)
-
-                if distance > rope.segmentLength then
-                    local diff = (distance - rope.segmentLength) / distance * 0.5
-
-                    -- only move the points at the middle of the rope
-                    if j > 1 then
-                        a.x = a.x + dx * diff
-                        a.y = a.y + dy * diff
-                    end
-                    if j < pointCount - 1 then
-                        b.x = b.x - dx * diff
-                        b.y = b.y - dy * diff
-                    end
-                end
-            end
-        end
-    end
-end
-
-local function drawRopes()
-    love.graphics.setColor(0.61, 0.86, 0.26)
-    love.graphics.setLineWidth(3)
-
-    for _, rope in ipairs(ropes) do
-        -- love.graphics.line need a string of numbers x, y, x, y..., so make an array here first
-        local linePoints = {}
-        for _, point in ipairs(rope.points) do
-            table.insert(linePoints, point.x)
-            table.insert(linePoints, point.y)
-        end
-
-        love.graphics.line(linePoints)
-    end
-
-    love.graphics.setLineWidth(1)
+    drawArm(shoulderX - 7 * player.scaleX, shoulderY, leftX, leftY)
+    drawArm(shoulderX + 7 * player.scaleX, shoulderY, rightX, rightY)
 end
 
 function Game.enter(self)
-    player.x, player.y = 320, 320
+    player.x, player.y = 320, 248
     player.isOnGround = false
     tray.offset, tray.vy = 0, 0
     tray.x, tray.vx = player.x + player.w * 0.5, 0
@@ -302,16 +226,38 @@ function Game.enter(self)
             "dynamic"
         )
         item.body:setLinearDamping(2)
-        item.body:setAngularDamping(8)
+        -- keep the jelly upright, only slides instead of rolling
+        item.body:setFixedRotation(true)
         item.fixture = love.physics.newFixture(
             item.body,
-            love.physics.newRectangleShape(item.w, item.h)
+            -- trapezoid fitted to the jelly sprite -> wide bottom, narrower top
+            love.physics.newPolygonShape(-24, 20, 24, 20, 18, -20, -18, -20)
         )
         item.fixture:setFriction(1.5)
         item.fixture:setRestitution(0.1)
+
+        item.squash = 1
+        item.squashV = 0
+        item.lastVy = 0
     end
 
-    resetRopes()
+    -- Player Sprites, the layered images share the same 96x128 canvas so drawing them in order
+    -- Don't draw arms here because they are drawn as soft arms following the tray
+    playerSprites = {}
+    for _, partName in ipairs({
+        "1-body",
+        "2-right_leg",
+        "3-left_leg",
+        "6-head"
+    }) do
+        table.insert(playerSprites, love.graphics.newImage("assets/sprites/layered/" .. partName .. ".png"))
+    end
+
+    -- Arm
+    armSprite = love.graphics.newImage("assets/sprites/unique/5-left_arm.png")
+
+    -- Item
+    itemSprite = love.graphics.newImage("assets/sprites/unique/7-jelly.png")
 end
 
 function Game.update(self, dt)
@@ -325,9 +271,25 @@ function Game.update(self, dt)
         moveX = moveX - speed
     end
 
+    -- face the walking direction
+    if moveX ~= 0 then
+        player.facing = moveX > 0 and 1 or -1
+    end
+
     -- keep our horizontal velocity, and use engine's rigidbody physics velocity(for gravity)
     local _, currentVy = playerBody:getLinearVelocity()
     playerBody:setLinearVelocity(moveX, currentVy)
+
+    -- soft body -> starting or stopping gives the body an impulse, then the spring wobbles it back to its normal shape
+    if moveX ~= player.lastMoveX then
+        player.squashV = player.squashV - (moveX - player.lastMoveX) * 0.008
+        player.lastMoveX = moveX
+    end
+
+    player.squashV = player.squashV + ((1 - player.squash) * 300 - player.squashV * 12) * dt
+    player.squash = player.squash + player.squashV * dt
+    player.scaleX = 1 + (1 - player.squash) * 0.7
+    player.scaleY = player.squash
 
     world:update(dt)
 
@@ -339,6 +301,8 @@ function Game.update(self, dt)
     local grounded = isGrounded()
     if grounded and not player.isOnGround and currentVy > 100 then
         tray.vy = tray.vy + currentVy * 2
+        -- squashes the body when landing
+        player.squashV = player.squashV - math.min(currentVy, 480) * 0.01
     end
     player.isOnGround = grounded
 
@@ -363,9 +327,22 @@ function Game.update(self, dt)
     trayBody:setLinearVelocity((tray.x - trayBodyX) / dt, (tray.y - trayBodyY) / dt)
     trayBody:setAngularVelocity((-tray.tilt - trayBody:getAngle()) / dt)
 
+    -- Items soft body -> landings squash the jelly, then the spring wobbles it back
+    for _, item in ipairs(items) do
+        local _, itemVy = item.body:getLinearVelocity()
+        -- squashes the jelly when landing
+        if item.lastVy > 40 and itemVy < item.lastVy then
+            item.squashV = item.squashV - math.min(item.lastVy - itemVy, 480) * 0.01
+        end
+        item.lastVy = itemVy
+
+        item.squashV = item.squashV + ((1 - item.squash) * 300 - item.squashV * 12) * dt
+        item.squash = item.squash + item.squashV * dt
+    end
+
     -- Find the closest item within pickup range
     nearbyItem = nil
-    local closestDistance = 50 * 50
+    local closestDistance = 100 * 100
     for _, item in ipairs(items) do
         local itemX, itemY = item.body:getPosition()
         local dx = itemX - playerCenterX
@@ -376,8 +353,6 @@ function Game.update(self, dt)
             nearbyItem = item
         end
     end
-
-    updateRopes(dt)
 end
 
 function Game.keypressed(self, key)     
@@ -388,6 +363,8 @@ function Game.keypressed(self, key)
             playerBody:setLinearVelocity(currentVx, -320)
             player.isOnGround = false
             tray.vy = tray.vy + 130
+            -- stretches the body when jumping
+            player.squashV = player.squashV + 2.5
         end
     end
     -- pick up item
@@ -398,7 +375,6 @@ function Game.keypressed(self, key)
         local itemY = trayY - math.cos(tray.tilt) * itemOffset
         nearbyItem.body:setPosition(itemX, itemY)
         nearbyItem.body:setLinearVelocity(0, 0)
-        nearbyItem.body:setAngularVelocity(0)
         nearbyItem.body:setAwake(true)
     end
 end
@@ -413,11 +389,17 @@ function Game.draw(self)
         love.graphics.rectangle("fill", platform.x, platform.y, platform.w, platform.h)
     end
 
-    drawRopes()
+    drawArms()
 
-    -- Draw Player (Temp Test)
-    love.graphics.setColor(0.35, 0.76, 0.21)
-    love.graphics.rectangle("fill", player.x, player.y, player.w, player.h)
+    -- Draw Player
+    -- The layered canvas is 96x128 and every part shares it, so the whole character is drawn by stacking the images in order
+    -- Keep the skates on the player's feet, and line up the middle of the body (x = 31 in the canvas) with the player's center
+    love.graphics.setColor(1, 1, 1)
+
+    -- draw from the feet, so the character squashes and stretches on the ground
+    for _, sprite in ipairs(playerSprites) do
+        love.graphics.draw(sprite, player.x + player.w * 0.5, player.y + player.h, 0, player.scaleX * player.facing, player.scaleY, 31, 128)
+    end
 
     -- Draw Tray (Temp Test)
     local leftX, leftY, rightX, rightY = trayEnds()
@@ -430,14 +412,14 @@ function Game.draw(self)
     love.graphics.line(leftX, leftY, leftX - sideOffsetX, leftY - sideOffsetY)
     love.graphics.line(rightX, rightY, rightX - sideOffsetX, rightY - sideOffsetY)
 
-    -- Draw Items (Temp Test)
+    -- Draw Items
     for _, item in ipairs(items) do
         local itemX, itemY = item.body:getPosition()
         love.graphics.push()
         love.graphics.translate(itemX, itemY)
-        love.graphics.rotate(item.body:getAngle())
-        love.graphics.setColor(1.00, 0.84, 0.25)
-        love.graphics.rectangle("fill", -item.w * 0.5, -item.h * 0.5, item.w, item.h)
+        love.graphics.setColor(1, 1, 1)
+        -- scale around the sprite's bottom, keep the jelly stays on the ground
+        love.graphics.draw(itemSprite, 0, 20, 0, 2 * (1 + (1 - item.squash) * 0.7), 2 * item.squash, itemSprite:getWidth() * 0.5, itemSprite:getHeight())
         if item == nearbyItem then
             love.graphics.setColor(1, 1, 1)
             love.graphics.setLineWidth(2)
