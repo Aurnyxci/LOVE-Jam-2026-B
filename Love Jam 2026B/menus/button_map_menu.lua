@@ -3,11 +3,6 @@ local options = {}
 function options:enter()
     self.titleBackground = love.graphics.newImage("/assets/backgrounds/main_menu_placeholderbg.png") --short function for big image path
 
-    self.buttonFont = love.graphics.newFont(
-    "assets/fonts/Tiny5Duo-VariableFont_BLED,JITT,ROND,wdth,wght.ttf",
-    24
-    )
-
     self.buttons = {
         {
             text = "Exit",
@@ -51,7 +46,7 @@ function options:draw()
         )
 
         love.graphics.setColor(1, 1, 1)
-        love.graphics.setFont(self.buttonFont)
+        love.graphics.setFont(mainFont)
         love.graphics.printf(
             button.text,
             button.x,
@@ -61,17 +56,20 @@ function options:draw()
         )
     end
 
+    local i = 1
 
-    --im trying to make a ctrls viewer but its not wroking atp and irdk why :sob:
-    --[[for _, c in ipairs(ctrls) do
+    for _, c in ipairs(ctrls) do
+        love.graphics.setColor(0.4, 0.4, 0.4)
         love.graphics.printf(
             ctrls[i].action .. ": " .. ctrls[i].keybind,
-            screenWidth / 2,
+            (screenWidth / 2) - ((screenWidth / 2) / 2),
             (i * 50) + 100,
-            200,
+            (screenWidth / 2),
             "center"
         )
-    end]]
+        i = i + 1
+    end
+    love.graphics.setColor(1, 1, 1)
 
 end
 

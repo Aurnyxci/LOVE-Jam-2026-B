@@ -3,11 +3,6 @@ local menu = {}
 function menu:enter()
     self.titleBackground = love.graphics.newImage("/assets/backgrounds/main_menu_placeholderbg.png") --short function for big image path
 
-    self.buttonFont = love.graphics.newFont(
-    "assets/fonts/Tiny5Duo-VariableFont_BLED,JITT,ROND,wdth,wght.ttf",
-    24
-    )
-
     self.buttons = {
         {
             text = "Start Game",  --start game button data
@@ -65,7 +60,7 @@ function menu:draw()
         )
 
         love.graphics.setColor(1, 1, 1)
-        love.graphics.setFont(self.buttonFont)
+        love.graphics.setFont(mainFont)
         love.graphics.printf(
             button.text, --sets the text it would be using
             button.x, --the x coordinate

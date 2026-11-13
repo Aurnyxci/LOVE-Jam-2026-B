@@ -5,11 +5,6 @@ musicOrSound = true
 function options:enter()
     self.titleBackground = love.graphics.newImage("/assets/backgrounds/main_menu_placeholderbg.png") --short function for big image path
 
-    self.buttonFont = love.graphics.newFont(
-    "assets/fonts/Tiny5Duo-VariableFont_BLED,JITT,ROND,wdth,wght.ttf",
-    24
-    )
-
     self.buttons = {
         {
             text = "Exit",
@@ -66,10 +61,12 @@ function options:draw()
             button.w,
             button.h
         )
+
+        love.graphics.setFont(mainFont)
+
         if button.text == "All Sound: " then
             if musicOrSound then
                 love.graphics.setColor(1, 1, 1)
-                love.graphics.setFont(self.buttonFont)
                 love.graphics.printf(
                     button.text .. "on",
                     button.x,
@@ -78,8 +75,7 @@ function options:draw()
                     "center"
                 )
             else
-                 love.graphics.setColor(1, 1, 1)
-                love.graphics.setFont(self.buttonFont)
+                love.graphics.setColor(1, 1, 1)
                 love.graphics.printf(
                     button.text .. "off",
                     button.x,
@@ -90,7 +86,6 @@ function options:draw()
             end
         else
             love.graphics.setColor(1, 1, 1)
-            love.graphics.setFont(self.buttonFont)
             love.graphics.printf(
                 button.text,
                 button.x,
