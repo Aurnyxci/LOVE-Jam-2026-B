@@ -16,6 +16,9 @@ function love.load()
     screenWidth = love.graphics.getWidth() --finds the height and width of the screen
     screenHeight = love.graphics.getHeight()
 
+    buttonPressed = love.graphics.newImage("assets/sprites/buttons/buttonPressed.png")
+    buttonUnpressed = love.graphics.newImage("assets/sprites/buttons/buttonUnpressed.png")
+
     mainFont = love.graphics.newFont( --main font load
     "assets/fonts/Tiny5Duo-VariableFont_BLED,JITT,ROND,wdth,wght.ttf",
     24

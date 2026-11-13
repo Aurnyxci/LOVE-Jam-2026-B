@@ -3,6 +3,8 @@ local menu = {}
 function menu:enter()
     self.titleBackground = love.graphics.newImage("/assets/backgrounds/main_menu_placeholderbg.png") --short function for big image path
 
+    local setButtonType = buttonUnpressed
+
     self.buttons = {
         {
             text = "Start Game",  --start game button data
@@ -46,19 +48,16 @@ function menu:draw()
     for _, button in ipairs(self.buttons) do --iterates through the data table
 
         if isMouseOver(button) then --check if mouse is inside button and change button color
-            love.graphics.setColor(0.5, 0.85, 0.2)
+            setButtonType = buttonPressed
         else
-            love.graphics.setColor(0.0, 0.7, 0.3)
+            setButtonType = buttonUnpressed
         end
         
-        love.graphics.rectangle( --draw rectangle
-            "fill", -- mode
-            button.x,  --button x pos
-            button.y,  --button y pos
-            button.w,  --button width
-            button.h  --button height
+        love.graphics.draw(
+            setButtonType,
+            button.x,
+            button.y
         )
-
         love.graphics.setColor(1, 1, 1)
         love.graphics.setFont(mainFont)
         love.graphics.printf(
