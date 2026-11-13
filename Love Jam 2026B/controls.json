@@ -22,5 +22,9 @@
     {
         "action" : "Close Game",
         "keybind" : "f5"
+    },
+    {
+        "action" : "Edit Keybinds",
+        "keybind" : "q"
     }
 ]

@@ -13,8 +13,13 @@ function love.load()
     local json = require("libs.json") --loads json library
     ctrls = json.decode(love.filesystem.read("controls.json")) --loads ctrls json
 
-    screenWidth = love.graphics.getWidth()
+    screenWidth = love.graphics.getWidth() --finds the height and width of the screen
     screenHeight = love.graphics.getHeight()
+
+    mainFont = love.graphics.newFont( --main font load
+    "assets/fonts/Tiny5Duo-VariableFont_BLED,JITT,ROND,wdth,wght.ttf",
+    24
+    )
 
     love.graphics.setDefaultFilter("nearest","nearest")
     LoadScene(require("menus/main_menu")) --loads the main menu
