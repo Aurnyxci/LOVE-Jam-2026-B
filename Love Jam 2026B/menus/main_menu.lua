@@ -70,7 +70,7 @@ function menu:draw()
             "center" --CENTER THE TEXT :D
         )
     end
-    love.graphics.draw(fwu, mx, my)
+    love.graphics.draw(mmp, mx, my)
 end
 
 function menu:mousepressed(x, y, button) --checks if the mouse is pressed on the button and what to do afterwards
