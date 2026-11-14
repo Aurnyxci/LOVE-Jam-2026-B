@@ -1,16 +1,18 @@
 local currentScene
 
-function LoadScene(scene, ...)
+function LoadScene(scene)
     currentScene = scene
     local inGame = currentScene == require("game")
     love.mouse.setVisible(not inGame)
     love.mouse.setGrabbed(inGame)
-    if currentScene.enter then currentScene.enter(currentScene, ...) end
+    if currentScene.enter then currentScene.enter(currentScene) end
 
 end
 
 function love.load()
-    local json = require("libs.json") --loads json library
+    json = require("libs.json") --loads json library
+    anim8 = require("libs.anim8")
+    
     ctrls = json.decode(love.filesystem.read("controls.json")) --loads ctrls json
 
     screenWidth = love.graphics.getWidth() --finds the height and width of the screen
