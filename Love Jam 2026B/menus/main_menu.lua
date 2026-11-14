@@ -3,6 +3,11 @@ local menu = {}
 function menu:enter()
     particles:enter()
 
+    self.titleFont = love.graphics.newFont(
+        "assets/fonts/Exile-Regular.ttf",
+        80
+    )
+
     self.titleBackground = love.graphics.newImage("/assets/backgrounds/main_menu_placeholderbg.png") --short function for big image path
 
     local setButtonType = buttonUnpressed
@@ -10,22 +15,22 @@ function menu:enter()
     self.buttons = {
         {
             text = "Start Game",  --start game button data
-            x = (screenWidth / 2) - 100, --screenwidth with half of the button's width taken off
-            y = 200,
+            x = (screenWidth / 2) - 100, --screenWidth with half of the button's width taken off
+            y = 300,
             w = 200,
             h = 50
         },
         {
             text = "Options",
             x = (screenWidth / 2) - 100,
-            y = 300,
+            y = 400,
             w = 200,
             h = 50
         },
         {
             text = "Quit",  --quit button data
             x = (screenWidth / 2) - 100,
-            y = 400,
+            y = 500,
             w = 200,
             h = 50
         }
@@ -46,6 +51,20 @@ function menu:draw()
     local bgh = love.graphics.getHeight() / self.titleBackground:getHeight()
     
     love.graphics.draw(self.titleBackground, 0, 0, 0, bgw, bgh) --draw background
+
+    local y = 100 + math.sin(love.timer.getTime() * 2) * 15
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setFont(self.titleFont)
+    love.graphics.printf(
+        "JELLY RUN",
+        0,
+        y,
+        screenWidth,
+        "center"
+    )
+    love.graphics.draw(mtp, (screenWidth / 2) - 200, y + 85)
+    love.graphics.draw(mtp, (screenWidth / 2), y + 85)
+    love.graphics.draw(mtp, (screenWidth / 2) + 200, y + 85)
 
     for _, button in ipairs(self.buttons) do --iterates through the data table
 

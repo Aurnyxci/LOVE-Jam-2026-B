@@ -46,16 +46,33 @@ local function fanWindUp()
 
 end
 
+local function menuTitleParticles()
+    local mtpIMAGE = love.graphics.newImage("assets/sprites/particles/menuTitleParticles.png")
+    mtp = love.graphics.newParticleSystem(mtpIMAGE)
+
+    mtp:setParticleLifetime(0.5, 1.5)
+    mtp:setEmissionRate(200)
+    mtp:setSizes(1.5, 0)
+    mtp:setLinearAcceleration(50, 50, 50, 50)
+    mtp:setSpeed(-400, 400)
+    mtp:setColors(
+        1, 1, 1, 1,
+        0.3, 0.3, 0.3, 0
+    )
+end
+
 function particles:enter()
     yellowJellySplat1()
     menuMouseParticles()
     fanWindUp()
+    menuTitleParticles()
 end
 
 function particles:update(dt)
     yjs1:update(dt)
     mmp:update(dt)
     fwu:update(dt)
+    mtp:update(dt)
 end
 
 
