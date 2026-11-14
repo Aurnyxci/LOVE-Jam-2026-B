@@ -12,7 +12,7 @@ end
 function love.load()
     json = require("libs.json") --loads json library
     anim8 = require("libs.anim8")
-    
+
     ctrls = json.decode(love.filesystem.read("controls.json")) --loads ctrls json
 
     screenWidth = love.graphics.getWidth() --finds the height and width of the screen
@@ -25,6 +25,9 @@ function love.load()
     "assets/fonts/Tiny5Duo-VariableFont_BLED,JITT,ROND,wdth,wght.ttf",
     24
     )
+
+    local icon = love.image.newImageData("assets/icons/icon.png")
+    love.window.setIcon(icon)
 
     love.graphics.setDefaultFilter("nearest","nearest")
     particles = require("particles")
