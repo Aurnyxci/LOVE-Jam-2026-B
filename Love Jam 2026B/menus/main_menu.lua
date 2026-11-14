@@ -1,6 +1,8 @@
 local menu = {}
 
 function menu:enter()
+    particles:enter()
+
     self.titleBackground = love.graphics.newImage("/assets/backgrounds/main_menu_placeholderbg.png") --short function for big image path
 
     local setButtonType = buttonUnpressed
@@ -31,7 +33,7 @@ function menu:enter()
 end
 
 local function isMouseOver(button)
-    local mx, my = love.mouse.getPosition() --finds the mouse position
+    mx, my = love.mouse.getPosition() --finds the mouse position
 
     return mx > button.x  --checks if mouse is inside the button
         and mx < button.x + button.w
@@ -68,6 +70,7 @@ function menu:draw()
             "center" --CENTER THE TEXT :D
         )
     end
+    love.graphics.draw(mmp, mx, my)
 end
 
 function menu:mousepressed(x, y, button) --checks if the mouse is pressed on the button and what to do afterwards

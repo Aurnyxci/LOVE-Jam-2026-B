@@ -25,11 +25,14 @@ function love.load()
     )
 
     love.graphics.setDefaultFilter("nearest","nearest")
+    particles = require("particles")
     LoadScene(require("menus/main_menu")) --loads the main menu
 
 end
 
 function love.update(dt)
+    particles:update(dt)
+    love.mouse.setVisible(false)
     if currentScene.update then currentScene.update(currentScene, dt) end
 
 end

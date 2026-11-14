@@ -17,7 +17,7 @@ function options:enter()
 end
 
 local function isMouseOver(button)
-    local mx, my = love.mouse.getPosition() --finds the mouse position
+    mx, my = love.mouse.getPosition() --finds the mouse position
 
     return mx > button.x  --checks if mouse is inside the button
         and mx < button.x + button.w
@@ -70,6 +70,7 @@ function options:draw()
         i = i + 1
     end
     love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(mmp, mx, my)
 
 end
 
